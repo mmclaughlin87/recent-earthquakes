@@ -8,26 +8,47 @@ d3.json(URL, function (data) {
 
 function chooseColor(magnitude) {
     if (magnitude < 1) {
-        return "#33BF00"
+        return "#4FFF2F"
     }
     else if (magnitude < 2) {
-        return "#6EC200"
+        return "#BAFF2F"
     }
     else if (magnitude < 3) {
-        return "#ACC600"
+        return "#FFC300"
     }
     else if (magnitude < 4) {
-        return "#CAA800"
+        return "#FF5733"
     }
     else if (magnitude < 5) {
-        return "#CE6D00"
+        return "#C70039"
+    }
+    else if (magnitude < 6) {
+        return "#900C3F"
     }
     else {
-        return "#D23000"
+        return "#581845"
     };
 };
 
 function createFeatures(earthquakeData) {
+    function onEachFeature(feature, layer) {
+        var months = ['Jan','Feb','Mar','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+        var days = ['Sun','Mon','Tues','Wed','Thu','Fri','Sat']
+        var timestamp = new Date(feature.properties.time);
+        var day = days[timestamp.getDay()];
+        var month = months[timestamp.getMonth()];
+        var date = timestamp.getDate();
+        var hours = timestamp.getHours();
+        var minutes = "0" + timestamp.getMinutes();
+        var formattedTime = day + ", " + month + " " + date + " " + hours + ':' + minutes.substr(-2);
+        
+        layer.bindPopup(`<strong>Location: ${feature.properties.place}</strong>
+            <hr>
+            Magnitude: ${feature.properties.mag}
+            <br>
+            Time: ${formattedTime}`);
+    };
+
     var earthquakes = L.geoJSON(earthquakeData, {
         pointToLayer: function (feature, latlng) {
             return L.circleMarker(latlng, {
@@ -38,7 +59,8 @@ function createFeatures(earthquakeData) {
                 opacity: 1,
                 fillOpacity: 0.8
             });
-        }
+        },
+        onEachFeature: onEachFeature
     });
     createMap(earthquakes);
 };
@@ -46,7 +68,7 @@ function createFeatures(earthquakeData) {
 function createMap(earthquakes) {
     var streetmap = L.tileLayer(`${mapboxURL}access_token=${mapboxKey}`);
     var myMap = L.map("map", {
-        center: [20, 0],
+        center: [20, -20],
         zoom: 2.5,
         layers: [streetmap, earthquakes]
     });
@@ -55,12 +77,12 @@ function createMap(earthquakes) {
     legend.onAdd = function (map) {
 
         var div = L.DomUtil.create('div', 'info legend'),
-            grades = [0, 1, 2, 3, 4, 5],
+            grades = [0, 1, 2, 3, 4, 5, 6],
             labels = [];
 
         for (var i = 0; i < grades.length; i++) {
             div.innerHTML +=
-                '<i style="background:' + chooseColor(grades[i] + 1) + '"></i> ' +
+                '<i style="background:' + chooseColor(grades[i]) + '"></i> ' +
                 grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
         }
 
